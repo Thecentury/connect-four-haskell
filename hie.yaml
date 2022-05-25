@@ -1,0 +1,10 @@
+cradle:
+  stack:
+    - path: "./src"
+      component: "connect-four:lib"
+
+    - path: "./app/Main.hs"
+      component: "connect-four:exe:connect-four"
+
+    - path: "./test"
+      component: "connect-four:test:connect-four-test"
