@@ -91,7 +91,7 @@ boardDiagonals board = do
       board
       & mapi (\rowIndex row ->
         row
-        & List.drop (shift + rowIndex * rowMultiplier)
+        & safeSkip (shift + rowIndex * rowMultiplier)
         & List.take 1)
       & List.filter (not . List.null)
       & List.transpose
