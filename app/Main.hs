@@ -1,7 +1,7 @@
 module Main (main) where
 
-import ConnectFour (someFunc)
+import ConnectFour
 
 
 main :: IO ()
-main = someFunc
+main = return ()

@@ -3,8 +3,8 @@ name:                connect-four
 version:             0.0.0.0
 synopsis:            See README for more info
 description:         See README for more info
-homepage:            https://github.com/thecentury/connect-four
-bug-reports:         https://github.com/thecentury/connect-four/issues
+homepage:            https://github.com/thecentury/haskell-connect-four
+bug-reports:         https://github.com/thecentury/haskell-connect-four/issues
 license:             MIT
 license-file:        LICENSE
 author:              Mikhail Brinchuk
@@ -17,7 +17,7 @@ tested-with:         GHC == 8.8.3
 
 source-repository head
   type:                git
-  location:            https://github.com/thecentury/connect-four.git
+  location:            https://github.com/thecentury/haskell-connect-four.git
 
 common common-options
   build-depends:       base >= 4.13.0.0
@@ -42,7 +42,9 @@ common common-options
 library
   import:              common-options
   hs-source-dirs:      src
-  exposed-modules:     ConnectFour
+  build-depends:       mtl
+  exposed-modules:     ConnectFour,
+                       OwnPrelude
 
 executable connect-four
   import:              common-options
@@ -58,7 +60,12 @@ test-suite connect-four-test
   type:                exitcode-stdio-1.0
   hs-source-dirs:      test
   main-is:             Spec.hs
-  build-depends:       connect-four
+  build-depends:       connect-four,
+                       hspec,
+                       hspec-contrib,
+                       QuickCheck,
+                       HUnit,
+                       mtl
   ghc-options:         -threaded
                        -rtsopts
                        -with-rtsopts=-N
