@@ -2,6 +2,7 @@ module Main (main) where
 
 import Test.Hspec
 import Control.Monad.Reader
+import Data.Function ((&))
 import ConnectFour
 
 main :: IO ()
@@ -65,3 +66,42 @@ main = hspec $ do
               [B]
             ]
       diagonals `shouldBe` expectedDiagonals
+
+  describe "Winner" $ do
+    let cfg = configOfRowsColumns 2 2 & configWithWin 2
+
+    it "no winner" $ do
+      let board =
+            [
+              [X, B],
+              [O, B]
+            ]
+      let winner_ = runReader (winner board) cfg
+      winner_ `shouldBe` Nothing
+
+    it "winner in a row" $ do
+      let board =
+            [
+              [X, X],
+              [O, B]
+            ]
+      let winner_ = runReader (winner board) cfg
+      winner_ `shouldBe` Just X
+
+    it "winner in a column" $ do
+      let board =
+            [
+              [X, B],
+              [X, O]
+            ]
+      let winner_ = runReader (winner board) cfg
+      winner_ `shouldBe` Just X
+
+    it "winner in a diagonal" $ do
+      let board =
+            [
+              [X, B],
+              [O, X]
+            ]
+      let winner_ = runReader (winner board) cfg
+      winner_ `shouldBe` Just X

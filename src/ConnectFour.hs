@@ -13,6 +13,7 @@ See README for more info
 module ConnectFour where
 
 import qualified Data.List as List
+import Data.Maybe (listToMaybe, catMaybes)
 import Control.Monad.Reader
 import Data.Function ((&))
 import OwnPrelude
@@ -108,3 +109,10 @@ winnerInRow row = do
     impl toWin (prev, count) (player : _) | player == prev && count + 1 >= toWin = Just player
     impl toWin (prev, count) (player : rest) | player == prev = impl toWin (player, count + 1) rest
     impl toWin _ (player : rest) = impl toWin (player, 1) rest
+
+winner :: Board -> Reader Config (Maybe Player)
+winner board = do
+  diagonals <- boardDiagonals board
+  let toSearch = concat [boardRows board, boardColumns board, diagonals]
+  winners <- sequence $ map winnerInRow $ toSearch
+  return $ listToMaybe $ catMaybes winners
