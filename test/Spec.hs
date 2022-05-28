@@ -206,3 +206,26 @@ main = hspec $ do
       let gameTree = runReader (buildGameTree O board) cfg
       let children = treeChildren gameTree
       length children `shouldBe` 3
+
+  describe "NextMove" $ do
+    it "when only one move remains" $ do
+      let board =
+           [
+              [X, X, B],
+              [O, O, X],
+              [O, X, O]
+           ]
+      let cfg = configOfRowsColumns 3 3 & configWithWin 3 & configWithDepth 7
+      let move = runReader (nextMove O board) cfg
+
+      case move of
+        Just m -> do
+          let actualBoard = nextBoardFromMove m
+          let expectedBoard =
+               [
+                  [X, X, O],
+                  [O, O, X],
+                  [O, X, O]
+               ]
+          actualBoard `shouldBe` expectedBoard
+        Nothing -> expectationFailure "Should find a single move"

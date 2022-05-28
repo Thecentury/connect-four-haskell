@@ -46,6 +46,10 @@ configWithWin :: Int -> Config -> Config
 configWithWin win cfg =
   cfg { win = win }
 
+configWithDepth :: Int -> Config -> Config
+configWithDepth depth' cfg =
+  cfg { depth = depth' }
+
 data Player = O | B | X
   deriving (Show, Eq, Ord)
 
@@ -209,10 +213,47 @@ buildGameTree playerToPlay board = do
                   let childrenWinners = map (\(Tree value _) -> winnerToPlayer value.winner_) children
                   let nodeWinner = playerMinimax playerToPlay childrenWinners
                   return (WinnerInChildren nodeWinner, children)
-          let treeValue = GameTreeNode {
+          let v = GameTreeNode {
             playerToPlay_ = playerToPlay,
             winner_ = actualWinner,
             depth_ = currentDepth,
             board_ = board
           }
-          return $ Tree treeValue children
+          return $ Tree v children
+
+data AIMove =
+  Definite Board
+  | RandomGuess Board
+  deriving (Show, Eq)
+
+nextBoardFromMove :: AIMove -> Board
+nextBoardFromMove (Definite b) = b
+nextBoardFromMove (RandomGuess b) = b
+
+nextMove :: Player -> Board -> Reader Config (Maybe AIMove)
+nextMove currentPlayer board = do
+  tree <- buildGameTree (nextPlayer currentPlayer) board
+
+  let nextMove' =
+        tree
+        & treeChildren
+        & filter (\child -> winnerToPlayer ((treeValue child).winner_) == currentPlayer)
+        & listToMaybe
+        & fmap (\child -> Definite (treeValue child).board_)
+        & orElseWith (
+          treeChildren tree
+          & filter (\child -> winnerToPlayer ((treeValue child).winner_) == B)
+          & map (\child -> (treeValue child).board_)
+          & randomMove
+        )
+        & orElseWith (
+          treeChildren tree
+          & map (\child -> (treeValue child).board_)
+          & randomMove
+        )
+  return nextMove'
+
+  where
+    randomMove :: [Board] -> Maybe AIMove
+    randomMove [] = Nothing
+    randomMove (m : _) = Just $ RandomGuess $ m

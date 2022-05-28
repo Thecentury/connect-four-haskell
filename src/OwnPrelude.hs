@@ -9,7 +9,8 @@ module OwnPrelude (
   zipperToList,
   Tree(..),
   treeValue,
-  treeChildren
+  treeChildren,
+  orElseWith
 ) where
 
 import qualified Data.List as List
@@ -62,3 +63,9 @@ treeValue (Tree v _) = v
 
 treeChildren :: Tree a -> [Tree a]
 treeChildren (Tree _ c) = c
+
+-----------------------------------------------------------
+
+orElseWith :: Maybe a -> Maybe a -> Maybe a
+orElseWith _ (Just a) = Just a
+orElseWith other Nothing = other
