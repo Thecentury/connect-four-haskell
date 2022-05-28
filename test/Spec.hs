@@ -105,3 +105,77 @@ main = hspec $ do
             ]
       let winner_ = runReader (winner board) cfg
       winner_ `shouldBe` Just X
+
+  describe "TryAdd" $ do
+    it "to a full column" $ do
+      let column' = tryAddToColumn O [X, O]
+      column' `shouldBe` Nothing
+
+    it "to a not empty column" $ do
+      let column' = tryAddToColumn X [B, O]
+      column' `shouldBe` Just [X, O]
+
+  describe "NextMoves" $ do
+    it "of an empty 1x1 board" $ do
+      let board = [[B]]
+      let nextMoves' = nextMoves O board
+      nextMoves' `shouldBe` [[[O]]]
+
+    it "of an empty 2x1 board" $ do
+      let board = [[B, B]]
+      let nextMoves' = nextMoves O board
+      let expectedMoves =
+            [
+              [[O, B]],
+              [[B, O]]
+            ]
+      nextMoves' `shouldBe` expectedMoves
+
+    it "of an empty 2x2 board" $ do
+      let board = [[B, B], [B, B]]
+      let nextMoves' = nextMoves O board
+      let expectedMoves =
+            [
+              [
+                [B, B],
+                [O, B]
+              ],
+              [
+                [B, B],
+                [B, O]
+              ]
+            ]
+      nextMoves' `shouldBe` expectedMoves
+
+    it "of a non-empty 2x2 board" $ do
+      let board = [[B, B], [X, B]]
+      let nextMoves' = nextMoves O board
+      let expectedMoves =
+            [
+              [
+                [O, B],
+                [X, B]
+              ],
+              [
+                [B, B],
+                [X, O]
+              ]
+            ]
+      nextMoves' `shouldBe` expectedMoves
+
+    it "of an 2x2 board with one full column" $ do
+      let board = [[O, B], [X, B]]
+      let nextMoves' = nextMoves O board
+      let expectedMoves =
+            [
+              [
+                [O, B],
+                [X, O]
+              ]
+            ]
+      nextMoves' `shouldBe` expectedMoves
+
+    it "of a full 2x2 board" $ do
+      let board = [[O, X], [X, O]]
+      let nextMoves' = nextMoves O board
+      nextMoves' `shouldBe` []

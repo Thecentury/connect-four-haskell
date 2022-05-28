@@ -13,7 +13,7 @@ See README for more info
 module ConnectFour where
 
 import qualified Data.List as List
-import Data.Maybe (listToMaybe, catMaybes)
+import Data.Maybe (listToMaybe, catMaybes, mapMaybe)
 import Control.Monad.Reader
 import Data.Function ((&))
 import OwnPrelude
@@ -116,3 +116,42 @@ winner board = do
   let toSearch = concat [boardRows board, boardColumns board, diagonals]
   winners <- sequence $ map winnerInRow $ toSearch
   return $ listToMaybe $ catMaybes winners
+
+isFullColumn :: Column -> Bool
+isFullColumn column = head column == B
+
+isFullBoard :: Board -> Bool
+isFullBoard = List.all isFullColumn . boardColumns
+
+tryAddToColumn :: Player -> Column -> Maybe Column
+tryAddToColumn player column =
+  let (added, result) = List.foldr go (False, []) column
+  in
+    if added then Just result
+    else Nothing
+  where
+  go :: Player -> (Bool, [Player]) -> (Bool, [Player])
+  go current (True, soFar) = (True, current : soFar)
+  go B (_, soFar) = (True, player : soFar)
+  go current (_, soFar) = (False, current : soFar)
+
+tryAddToBoard :: Player -> Int -> Board -> Maybe Board
+tryAddToBoard player columnIndex board = fmap List.transpose $ go columnIndex [] $ boardColumns board where
+  go :: Int -> [Column] -> [Column] -> Maybe [Column]
+  go _ _ [] = Nothing
+  go 0 soFar (column : rest) =
+    let column' = tryAddToColumn player column in
+    case column' of
+      Nothing -> Nothing
+      Just column'' -> Just $ List.reverse soFar ++ [column''] ++ rest
+  go currentColumnIndex soFar (column : rest) =
+    go (currentColumnIndex - 1) (column : soFar) rest
+
+nextMoves :: Player -> Board -> [Board]
+nextMoves player board =
+  board
+  & boardColumns
+  & zipperFromList
+  & zipperSelfAndRights
+  & mapMaybe (\z -> tryAddToColumn player (zipperFocus z) & fmap (\column -> zipperWithFocus column z))
+  & map (boardColumns . zipperToList)
