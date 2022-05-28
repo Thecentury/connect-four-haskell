@@ -6,7 +6,10 @@ module OwnPrelude (
   zipperFocus,
   zipperWithFocus,
   zipperSelfAndRights,
-  zipperToList
+  zipperToList,
+  Tree(..),
+  treeValue,
+  treeChildren
 ) where
 
 import qualified Data.List as List
@@ -50,3 +53,12 @@ zipperSelfAndRights zipper = List.unfoldr gen (Just zipper)
 zipperToList :: Zipper a -> [a]
 zipperToList (Zipper l f r) = List.reverse l ++ [f] ++ r
 
+-----------------------------------------------------------
+
+data Tree a = Tree a [Tree a]
+
+treeValue :: Tree a -> a
+treeValue (Tree v _) = v
+
+treeChildren :: Tree a -> [Tree a]
+treeChildren (Tree _ c) = c

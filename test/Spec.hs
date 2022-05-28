@@ -4,6 +4,7 @@ import Test.Hspec
 import Control.Monad.Reader
 import Data.Function ((&))
 import ConnectFour
+import OwnPrelude
 
 main :: IO ()
 main = hspec $ do
@@ -179,3 +180,29 @@ main = hspec $ do
       let board = [[O, X], [X, O]]
       let nextMoves' = nextMoves O board
       nextMoves' `shouldBe` []
+
+  describe "BuildGameTree" $ do
+    it "for a board from video" $ do
+      let board =
+           [
+              [B, B, X],
+              [B, X, O],
+              [O, O, X]
+           ]
+      let cfg = configOfRowsColumns 3 3 & configWithWin 3
+      let gameTree = runReader (buildGameTree O board) cfg
+      let value = treeValue gameTree
+      let actualWinner = winner_ value
+      actualWinner `shouldBe` WinnerInChildren X
+
+    it "for after the first move" $ do
+      let board =
+           [
+              [B, B, B],
+              [B, B, B],
+              [O, B, B]
+           ]
+      let cfg = configOfRowsColumns 3 3 & configWithWin 3
+      let gameTree = runReader (buildGameTree O board) cfg
+      let children = treeChildren gameTree
+      length children `shouldBe` 3

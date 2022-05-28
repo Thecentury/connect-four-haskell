@@ -155,3 +155,64 @@ nextMoves player board =
   & zipperSelfAndRights
   & mapMaybe (\z -> tryAddToColumn player (zipperFocus z) & fmap (\column -> zipperWithFocus column z))
   & map (boardColumns . zipperToList)
+
+-------------------------------------------------------
+
+data Winner =
+  DepthExhausted
+  | FoundWinner Player
+  | WinnerInChildren Player
+  deriving (Show, Eq)
+
+winnerToPlayer :: Winner -> Player
+winnerToPlayer DepthExhausted = B
+winnerToPlayer (FoundWinner p) = p
+winnerToPlayer (WinnerInChildren p) = p
+
+data GameTreeNode = GameTreeNode {
+  playerToPlay_ :: Player,
+  winner_ :: Winner,
+  board_ :: Board,
+  depth_ :: Int
+}
+
+buildGameTree :: Player -> Board -> Reader Config (Tree GameTreeNode)
+buildGameTree playerToPlay board = do
+  cfg <- config
+  result <- impl cfg.depth 0 playerToPlay board
+  return result
+  where
+    impl :: Int -> Int -> Player -> Board -> Reader Config (Tree GameTreeNode)
+    impl maxDepth currentDepth playerToPlay board = do
+      if currentDepth >= maxDepth then
+        let treeValue = GameTreeNode {
+          playerToPlay_ = playerToPlay,
+          winner_ = DepthExhausted,
+          depth_ = currentDepth,
+          board_ = board
+        }
+        in
+          return $ Tree treeValue []
+      else
+        do
+          let nextPlayer' = nextPlayer playerToPlay
+          winner <- winner board
+          (actualWinner, children) <-
+            do
+              case winner of
+                Just w -> return (FoundWinner w, [])
+                Nothing -> do
+                  children <-
+                    nextMoves nextPlayer' board
+                    & map (impl maxDepth (currentDepth + 1) nextPlayer')
+                    & sequence
+                  let childrenWinners = map (\(Tree value _) -> winnerToPlayer value.winner_) children
+                  let nodeWinner = playerMinimax playerToPlay childrenWinners
+                  return (WinnerInChildren nodeWinner, children)
+          let treeValue = GameTreeNode {
+            playerToPlay_ = playerToPlay,
+            winner_ = actualWinner,
+            depth_ = currentDepth,
+            board_ = board
+          }
+          return $ Tree treeValue children
