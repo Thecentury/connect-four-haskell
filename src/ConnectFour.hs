@@ -23,7 +23,7 @@ data Config = Config {
   columns :: Int,
   win :: Int,
   depth :: Int
-} deriving Show
+} deriving stock (Show, Eq)
 
 defaultConfig :: Config
 defaultConfig = Config {
@@ -34,9 +34,7 @@ defaultConfig = Config {
 }
 
 config :: Reader Config Config
-config = do
-  cfg <- ask
-  return cfg
+config = ask
 
 configOfRowsColumns :: Int -> Int -> Config
 configOfRowsColumns rows columns =
@@ -51,7 +49,7 @@ configWithDepth depth' cfg =
   cfg { depth = depth' }
 
 data Player = O | B | X
-  deriving (Show, Eq, Ord)
+  deriving stock (Show, Eq, Ord)
 
 playerDisplayString :: Player -> String
 playerDisplayString O = "o"
@@ -122,7 +120,7 @@ winner board = do
   return $ listToMaybe $ catMaybes winners
 
 isFullColumn :: Column -> Bool
-isFullColumn column = head column == B
+isFullColumn column = head column /= B
 
 isFullBoard :: Board -> Bool
 isFullBoard = List.all isFullColumn . boardColumns
@@ -166,7 +164,7 @@ data Winner =
   DepthExhausted
   | FoundWinner Player
   | WinnerInChildren Player
-  deriving (Show, Eq)
+  deriving stock (Show, Eq)
 
 winnerToPlayer :: Winner -> Player
 winnerToPlayer DepthExhausted = B
@@ -224,7 +222,7 @@ buildGameTree playerToPlay board = do
 data AIMove =
   Definite Board
   | RandomGuess Board
-  deriving (Show, Eq)
+  deriving stock (Show, Eq)
 
 nextBoardFromMove :: AIMove -> Board
 nextBoardFromMove (Definite b) = b
@@ -254,6 +252,24 @@ nextMove currentPlayer board = do
   return nextMove'
 
   where
+    -- todo choose random move
     randomMove :: [Board] -> Maybe AIMove
     randomMove [] = Nothing
     randomMove (m : _) = Just $ RandomGuess $ m
+
+-----------------------------------------------------------
+
+data Outcome =
+  Win Player
+  | Draw
+  | InProgress
+  deriving stock (Show, Eq)
+
+boardOutcome :: Board -> Reader Config Outcome
+boardOutcome board = do
+  winner' <- winner board
+  let outcome = case winner' of
+                  Just w -> Win w
+                  Nothing | isFullBoard board -> Draw
+                  Nothing -> InProgress
+  return outcome

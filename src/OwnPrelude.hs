@@ -10,10 +10,14 @@ module OwnPrelude (
   Tree(..),
   treeValue,
   treeChildren,
-  orElseWith
+  orElseWith,
+  liftReader
 ) where
 
 import qualified Data.List as List
+import Control.Monad.Reader
+import Control.Monad.Identity
+import Data.Functor.Identity
 
 mapi :: (Int -> a -> b) -> [a] -> [b]
 mapi f = go 0 where
@@ -69,3 +73,8 @@ treeChildren (Tree _ c) = c
 orElseWith :: Maybe a -> Maybe a -> Maybe a
 orElseWith _ (Just a) = Just a
 orElseWith other Nothing = other
+
+-----------------------------------------------------------
+
+liftReader :: Monad m => ReaderT r Identity b -> ReaderT r m b
+liftReader = mapReaderT (pure . runIdentity)
