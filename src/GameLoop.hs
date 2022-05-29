@@ -11,6 +11,7 @@ import BoardComparison
 import Control.Monad.Reader
 import Text.Read (readMaybe)
 import System.IO (hFlush, stdout)
+import System.Console.ANSI
 import OwnPrelude
 
 readPlayerInput :: Player -> ReaderT Config IO Int
@@ -21,7 +22,7 @@ readPlayerInput player = do
     hFlush stdout
     getLine
   case (readMaybe columnStr :: Maybe Int) of
-    Just column | column >= 1 && column <= cfg.columns ->
+    Just column | column >= 1 && column <= cfg.columns_ ->
       -- convert to zero-based index
       return (column - 1)
     _ -> do
@@ -37,9 +38,10 @@ playerKind _ = error "Invalid player B"
 
 drawCell :: CellDiff -> IO ()
 drawCell (Unchanged p) = putStr $ playerDisplayString p
-drawCell (Changed p) =
-  -- todo show a changed cell
+drawCell (Changed p) = do
+  setSGR [SetColor Foreground Vivid Red]
   putStr $ playerDisplayString p
+  setSGR [Reset]
 
 drawDiffBoard :: Board -> Board -> ReaderT Config IO ()
 drawDiffBoard prev curr = do
@@ -51,10 +53,10 @@ drawDiffBoard prev curr = do
           forM_ row drawCell
           putStrLn "")
 
-      forM_ [1 .. cfg.columns] (const $ putStr "-")
+      forM_ [1 .. cfg.columns_] (const $ putStr "-")
       putStrLn ""
 
-      forM_ [1 .. cfg.columns] $ putStr . show
+      forM_ [1 .. cfg.columns_] $ putStr . show
       putStrLn ""
       putStrLn ""
 

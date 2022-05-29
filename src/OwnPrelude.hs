@@ -3,7 +3,6 @@ module OwnPrelude (
   safeSkip,
   Zipper(..),
   zipperFromList,
-  zipperFocus,
   zipperWithFocus,
   zipperSelfAndRights,
   zipperToList,
@@ -17,7 +16,6 @@ module OwnPrelude (
 import qualified Data.List as List
 import Control.Monad.Reader
 import Control.Monad.Identity
-import Data.Functor.Identity
 
 mapi :: (Int -> a -> b) -> [a] -> [b]
 mapi f = go 0 where
@@ -30,16 +28,13 @@ safeSkip 0 list = list
 safeSkip toSkip list = List.drop toSkip list
 
 data Zipper a = Zipper {
-  left :: [a],
-  focus :: a,
-  right :: [a]
+  left_ :: [a],
+  focus_ :: a,
+  right_ :: [a]
 }
 
 zipperFromList :: [a] -> Zipper a
 zipperFromList list = Zipper [] (head list) (tail list)
-
-zipperFocus :: Zipper a -> a
-zipperFocus (Zipper _ f _) = f
 
 zipperWithFocus :: a -> Zipper a -> Zipper a
 zipperWithFocus f (Zipper left _ right) = Zipper left f right

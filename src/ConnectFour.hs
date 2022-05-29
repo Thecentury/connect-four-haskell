@@ -19,18 +19,18 @@ import Data.Function ((&))
 import OwnPrelude
 
 data Config = Config {
-  rows :: Int,
-  columns :: Int,
-  win :: Int,
-  depth :: Int
+  rows_ :: Int,
+  columns_ :: Int,
+  win_ :: Int,
+  maxDepth_ :: Int
 } deriving stock (Show, Eq)
 
 defaultConfig :: Config
 defaultConfig = Config {
-  rows = 3,
-  columns = 3,
-  win = 3,
-  depth = 6
+  rows_ = 3,
+  columns_ = 3,
+  win_ = 3,
+  maxDepth_ = 6
 }
 
 config :: Reader Config Config
@@ -38,15 +38,15 @@ config = ask
 
 configOfRowsColumns :: Int -> Int -> Config
 configOfRowsColumns rows columns =
-  defaultConfig { rows = rows, columns = columns }
+  defaultConfig { rows_ = rows, columns_ = columns }
 
 configWithWin :: Int -> Config -> Config
 configWithWin win cfg =
-  cfg { win = win }
+  cfg { win_ = win }
 
 configWithDepth :: Int -> Config -> Config
-configWithDepth depth' cfg =
-  cfg { depth = depth' }
+configWithDepth depth cfg =
+  cfg { maxDepth_ = depth }
 
 data Player = O | B | X
   deriving stock (Show, Eq, Ord)
@@ -73,7 +73,7 @@ type Board = [Row]
 
 mkBoard :: Config -> Board
 mkBoard cfg =
-  List.replicate cfg.rows $ List.replicate cfg.columns $ B
+  List.replicate cfg.rows_ $ List.replicate cfg.columns_ $ B
 
 boardRows :: Board -> [Row]
 boardRows board = board
@@ -84,8 +84,8 @@ boardColumns board = List.transpose board
 boardDiagonals :: Board -> Reader Config [Row]
 boardDiagonals board = do
   cfg <- config
-  let growingDiagonals = [shiftedRows shift (-1) | shift <- [0 .. cfg.columns + cfg.rows - 2]]
-  let decreasingDiagonals = [shiftedRows shift 1 | shift <- [-(cfg.rows - 1) .. cfg.columns - 1]]
+  let growingDiagonals = [shiftedRows shift (-1) | shift <- [0 .. cfg.columns_ + cfg.rows_ - 2]]
+  let decreasingDiagonals = [shiftedRows shift 1 | shift <- [-(cfg.rows_ - 1) .. cfg.columns_ - 1]]
   let allDiagonals = List.concat [growingDiagonals, decreasingDiagonals] & List.filter (not . null) & List.concat
   return allDiagonals
   where
@@ -102,7 +102,7 @@ boardDiagonals board = do
 winnerInRow :: Row -> Reader Config (Maybe Player)
 winnerInRow row = do
   cfg <- config
-  let toWin = cfg.win
+  let toWin = cfg.win_
   return $ impl toWin (B, 0) row
   where
     impl :: Int -> (Player, Int) -> Row -> Maybe Player
@@ -155,7 +155,7 @@ nextMoves player board =
   & boardColumns
   & zipperFromList
   & zipperSelfAndRights
-  & mapMaybe (\z -> tryAddToColumn player (zipperFocus z) & fmap (\column -> zipperWithFocus column z))
+  & mapMaybe (\z -> tryAddToColumn player (focus_ z) & fmap (\column -> zipperWithFocus column z))
   & map (boardColumns . zipperToList)
 
 -------------------------------------------------------
@@ -179,29 +179,29 @@ data GameTreeNode = GameTreeNode {
 }
 
 buildGameTree :: Player -> Board -> Reader Config (Tree GameTreeNode)
-buildGameTree playerToPlay board = do
+buildGameTree playerToPlay' board' = do
   cfg <- config
-  result <- impl cfg.depth 0 playerToPlay board
+  result <- impl cfg.maxDepth_ 0 playerToPlay' board'
   return result
   where
     impl :: Int -> Int -> Player -> Board -> Reader Config (Tree GameTreeNode)
     impl maxDepth currentDepth playerToPlay board = do
       if currentDepth >= maxDepth then
-        let treeValue = GameTreeNode {
+        let treeValue' = GameTreeNode {
           playerToPlay_ = playerToPlay,
           winner_ = DepthExhausted,
           depth_ = currentDepth,
           board_ = board
         }
         in
-          return $ Tree treeValue []
+          return $ Tree treeValue' []
       else
         do
           let nextPlayer' = nextPlayer playerToPlay
-          winner <- winner board
+          winner' <- winner board
           (actualWinner, children) <-
             do
-              case winner of
+              case winner' of
                 Just w -> return (FoundWinner w, [])
                 Nothing -> do
                   children <-

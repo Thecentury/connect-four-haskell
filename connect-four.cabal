@@ -13,7 +13,7 @@ copyright:           2022 Mikhail Brinchuk
 build-type:          Simple
 extra-doc-files:     README.md
                      CHANGELOG.md
-tested-with:         GHC == 8.8.3
+tested-with:         GHC == 9.2.2
 
 source-repository head
   type:                git
@@ -42,7 +42,8 @@ common common-options
 library
   import:              common-options
   hs-source-dirs:      src
-  build-depends:       mtl
+  build-depends:       mtl,
+                       ansi-terminal
   exposed-modules:     ConnectFour,
                        OwnPrelude,
                        GameLoop,
@@ -53,7 +54,8 @@ executable connect-four
   hs-source-dirs:      app
   main-is:             Main.hs
   build-depends:       connect-four,
-                       mtl
+                       mtl,
+                       ansi-terminal
   ghc-options:         -threaded
                        -rtsopts
                        -with-rtsopts=-N
