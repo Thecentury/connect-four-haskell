@@ -2,7 +2,7 @@
 
 module BoardComparison where
 
-import ConnectFour
+import           ConnectFour
 
 data CellDiff =
   Unchanged Player

@@ -13,13 +13,13 @@ module OwnPrelude (
   liftReader
 ) where
 
-import qualified Data.List as List
-import Control.Monad.Reader
-import Control.Monad.Identity
+import           Control.Monad.Identity
+import           Control.Monad.Reader
+import qualified Data.List              as List
 
 mapi :: (Int -> a -> b) -> [a] -> [b]
 mapi f = go 0 where
-  go _ [] = []
+  go _ []         = []
   go index (a:as) = f index a : go (index + 1) as
 
 safeSkip :: Int -> [a] -> [a]
@@ -28,7 +28,7 @@ safeSkip 0 list = list
 safeSkip toSkip list = List.drop toSkip list
 
 data Zipper a = Zipper {
-  left_ :: [a],
+  left_  :: [a],
   focus_ :: a,
   right_ :: [a]
 }
@@ -40,14 +40,14 @@ zipperWithFocus :: a -> Zipper a -> Zipper a
 zipperWithFocus f (Zipper left _ right) = Zipper left f right
 
 zipperTryMoveRight :: Zipper a -> Maybe (Zipper a)
-zipperTryMoveRight (Zipper _ _ []) = Nothing
+zipperTryMoveRight (Zipper _ _ [])          = Nothing
 zipperTryMoveRight (Zipper left f (r : rs)) = Just $ Zipper (f : left) r rs
 
 zipperSelfAndRights :: Zipper a -> [Zipper a]
 zipperSelfAndRights zipper = List.unfoldr gen (Just zipper)
   where
     gen :: Maybe (Zipper a) -> Maybe (Zipper a, Maybe (Zipper a))
-    gen Nothing = Nothing
+    gen Nothing  = Nothing
     gen (Just z) = Just (z, zipperTryMoveRight z)
 
 zipperToList :: Zipper a -> [a]
@@ -66,7 +66,7 @@ treeChildren (Tree _ c) = c
 -----------------------------------------------------------
 
 orElseWith :: Maybe a -> Maybe a -> Maybe a
-orElseWith _ (Just a) = Just a
+orElseWith _ (Just a)    = Just a
 orElseWith other Nothing = other
 
 -----------------------------------------------------------

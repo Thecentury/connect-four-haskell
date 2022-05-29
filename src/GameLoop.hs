@@ -1,18 +1,18 @@
-{-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE OverloadedRecordDot #-}
+{-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE OverloadedRecordDot   #-}
 
 module GameLoop (
   loop
 ) where
 
-import ConnectFour
-import BoardComparison
-import Control.Monad.Reader
-import Text.Read (readMaybe)
-import System.IO (hFlush, stdout)
-import System.Console.ANSI
-import OwnPrelude
+import           BoardComparison
+import           ConnectFour
+import           Control.Monad.Reader
+import           OwnPrelude
+import           System.Console.ANSI
+import           System.IO            (hFlush, stdout)
+import           Text.Read            (readMaybe)
 
 readPlayerInput :: Player -> ReaderT Config IO Int
 readPlayerInput player = do

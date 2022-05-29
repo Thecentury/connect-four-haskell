@@ -1,8 +1,8 @@
 module Main (main) where
 
-import ConnectFour
-import GameLoop (loop)
-import Control.Monad.Reader
+import           ConnectFour
+import           Control.Monad.Reader
+import           GameLoop             (loop)
 
 cfg :: Config
 cfg = Config {

@@ -1,10 +1,10 @@
 module Main (main) where
 
-import Test.Hspec
-import Control.Monad.Reader
-import Data.Function ((&))
-import ConnectFour
-import OwnPrelude
+import           ConnectFour
+import           Control.Monad.Reader
+import           Data.Function        ((&))
+import           OwnPrelude
+import           Test.Hspec
 
 main :: IO ()
 main = hspec $ do

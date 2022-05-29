@@ -6,22 +6,22 @@ Maintainer: Mikhail Brinchuk <thecentury@gmail.com>
 See README for more info
 -}
 
-{-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE OverloadedRecordDot #-}
+{-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE OverloadedRecordDot   #-}
 
 module ConnectFour where
 
-import qualified Data.List as List
-import Data.Maybe (listToMaybe, catMaybes, mapMaybe)
-import Control.Monad.Reader
-import Data.Function ((&))
-import OwnPrelude
+import           Control.Monad.Reader
+import           Data.Function        ((&))
+import qualified Data.List            as List
+import           Data.Maybe           (catMaybes, listToMaybe, mapMaybe)
+import           OwnPrelude
 
 data Config = Config {
-  rows_ :: Int,
-  columns_ :: Int,
-  win_ :: Int,
+  rows_     :: Int,
+  columns_  :: Int,
+  win_      :: Int,
   maxDepth_ :: Int
 } deriving stock (Show, Eq)
 
@@ -57,8 +57,8 @@ playerDisplayString B = "."
 playerDisplayString X = "x"
 
 playerMinimax :: Player -> [Player] -> Player
-playerMinimax B _ = B
-playerMinimax _ [] = B
+playerMinimax B _       = B
+playerMinimax _ []      = B
 playerMinimax O winners = List.minimum winners
 playerMinimax X winners = List.maximum winners
 
@@ -134,8 +134,8 @@ tryAddToColumn player column =
   where
   go :: Player -> (Bool, [Player]) -> (Bool, [Player])
   go current (True, soFar) = (True, current : soFar)
-  go B (_, soFar) = (True, player : soFar)
-  go current (_, soFar) = (False, current : soFar)
+  go B (_, soFar)          = (True, player : soFar)
+  go current (_, soFar)    = (False, current : soFar)
 
 tryAddToBoard :: Player -> Int -> Board -> Maybe Board
 tryAddToBoard player columnIndex board = fmap List.transpose $ go columnIndex [] $ boardColumns board where
@@ -144,7 +144,7 @@ tryAddToBoard player columnIndex board = fmap List.transpose $ go columnIndex []
   go 0 soFar (column : rest) =
     let column' = tryAddToColumn player column in
     case column' of
-      Nothing -> Nothing
+      Nothing       -> Nothing
       Just column'' -> Just $ List.reverse soFar ++ [column''] ++ rest
   go currentColumnIndex soFar (column : rest) =
     go (currentColumnIndex - 1) (column : soFar) rest
@@ -167,15 +167,15 @@ data Winner =
   deriving stock (Show, Eq)
 
 winnerToPlayer :: Winner -> Player
-winnerToPlayer DepthExhausted = B
-winnerToPlayer (FoundWinner p) = p
+winnerToPlayer DepthExhausted       = B
+winnerToPlayer (FoundWinner p)      = p
 winnerToPlayer (WinnerInChildren p) = p
 
 data GameTreeNode = GameTreeNode {
   playerToPlay_ :: Player,
-  winner_ :: Winner,
-  board_ :: Board,
-  depth_ :: Int
+  winner_       :: Winner,
+  board_        :: Board,
+  depth_        :: Int
 }
 
 buildGameTree :: Player -> Board -> Reader Config (Tree GameTreeNode)
@@ -225,7 +225,7 @@ data AIMove =
   deriving stock (Show, Eq)
 
 nextBoardFromMove :: AIMove -> Board
-nextBoardFromMove (Definite b) = b
+nextBoardFromMove (Definite b)    = b
 nextBoardFromMove (RandomGuess b) = b
 
 nextMove :: Player -> Board -> Reader Config (Maybe AIMove)
@@ -254,7 +254,7 @@ nextMove currentPlayer board = do
   where
     -- todo choose random move
     randomMove :: [Board] -> Maybe AIMove
-    randomMove [] = Nothing
+    randomMove []      = Nothing
     randomMove (m : _) = Just $ RandomGuess $ m
 
 -----------------------------------------------------------
@@ -269,7 +269,7 @@ boardOutcome :: Board -> Reader Config Outcome
 boardOutcome board = do
   winner' <- winner board
   let outcome = case winner' of
-                  Just w -> Win w
+                  Just w                      -> Win w
                   Nothing | isFullBoard board -> Draw
-                  Nothing -> InProgress
+                  Nothing                     -> InProgress
   return outcome
