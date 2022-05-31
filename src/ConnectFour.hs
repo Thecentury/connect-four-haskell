@@ -256,7 +256,7 @@ nextMove currentPlayer board = do
     randomMove :: [Board] -> IO (Maybe AIMove)
     randomMove []      = return Nothing
     randomMove moves = do
-      index <- uniformRM (0, length moves) globalStdGen
+      index <- uniformRM (0, length moves - 1) globalStdGen
       return $ Just $ RandomGuess $ moves !! index
 
 -----------------------------------------------------------
