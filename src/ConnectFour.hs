@@ -233,11 +233,11 @@ nextMove :: Player -> Board -> ReaderT Config IO (Maybe AIMove)
 nextMove currentPlayer board = do
   tree <- liftReader $ buildGameTree (nextPlayer currentPlayer) board
 
-  let definiteGuess =     tree
-                          & treeChildren
-                          & filter (\child -> winnerToPlayer ((treeValue child).winner_) == currentPlayer)
-                          & listToMaybe
-                          & fmap (\child -> Definite (treeValue child).board_)
+  let definiteGuess = tree
+                      & treeChildren
+                      & filter (\child -> winnerToPlayer ((treeValue child).winner_) == currentPlayer)
+                      & listToMaybe
+                      & fmap (\child -> Definite (treeValue child).board_)
   let candidateOne = return definiteGuess
   let candidateTwo =
         treeChildren tree
@@ -249,12 +249,8 @@ nextMove currentPlayer board = do
         & map (\child -> (treeValue child).board_)
         & randomMove
 
-  nextMove' <-
-        candidateOne
-        & orElseWithIO candidateTwo
-        & orElseWithIO candidateThree
-        & liftIO
-  return nextMove'
+  let nextMove' = pure orElseWith <*> (pure orElseWith <*> candidateOne <*> candidateTwo) <*> candidateThree
+  liftIO nextMove'
 
   where
     randomMove :: [Board] -> IO (Maybe AIMove)
