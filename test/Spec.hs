@@ -206,7 +206,7 @@ main = hspec $ do
               [O, X, O]
            ]
       let cfg = configOfRowsColumns 3 3 & configWithWin 3 & configWithDepth 7
-      let move = runReader (nextMove O board) cfg
+      move <- runReaderT (nextMove O board) cfg
 
       case move of
         Just m -> do

@@ -10,6 +10,7 @@ module OwnPrelude (
   treeValue,
   treeChildren,
   orElseWith,
+  orElseWithIO,
   liftReader
 ) where
 
@@ -69,6 +70,12 @@ orElseWith :: Maybe a -> Maybe a -> Maybe a
 orElseWith _ (Just a)    = Just a
 orElseWith other Nothing = other
 
+orElseWithIO :: IO (Maybe a) -> IO (Maybe a) -> IO (Maybe a)
+orElseWithIO other first = do
+  first' <- first
+  case first' of
+    Just _ -> return first'
+    Nothing -> other
 -----------------------------------------------------------
 
 liftReader :: Monad m => ReaderT r Identity b -> ReaderT r m b

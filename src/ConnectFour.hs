@@ -17,6 +17,7 @@ import           Data.Function        ((&))
 import qualified Data.List            as List
 import           Data.Maybe           (catMaybes, listToMaybe, mapMaybe)
 import           OwnPrelude
+import           System.Random.Stateful
 
 data Config = Config {
   rows_     :: Int,
@@ -228,34 +229,39 @@ nextBoardFromMove :: AIMove -> Board
 nextBoardFromMove (Definite b)    = b
 nextBoardFromMove (RandomGuess b) = b
 
-nextMove :: Player -> Board -> Reader Config (Maybe AIMove)
+nextMove :: Player -> Board -> ReaderT Config IO (Maybe AIMove)
 nextMove currentPlayer board = do
-  tree <- buildGameTree (nextPlayer currentPlayer) board
+  tree <- liftReader $ buildGameTree (nextPlayer currentPlayer) board
 
-  let nextMove' =
-        tree
-        & treeChildren
-        & filter (\child -> winnerToPlayer ((treeValue child).winner_) == currentPlayer)
-        & listToMaybe
-        & fmap (\child -> Definite (treeValue child).board_)
-        & orElseWith (
-          treeChildren tree
-          & filter (\child -> winnerToPlayer ((treeValue child).winner_) == B)
-          & map (\child -> (treeValue child).board_)
-          & randomMove
-        )
-        & orElseWith (
-          treeChildren tree
-          & map (\child -> (treeValue child).board_)
-          & randomMove
-        )
+  let definiteGuess =     tree
+                          & treeChildren
+                          & filter (\child -> winnerToPlayer ((treeValue child).winner_) == currentPlayer)
+                          & listToMaybe
+                          & fmap (\child -> Definite (treeValue child).board_)
+  let candidateOne = return definiteGuess
+  let candidateTwo =
+        treeChildren tree
+        & filter (\child -> winnerToPlayer ((treeValue child).winner_) == B)
+        & map (\child -> (treeValue child).board_)
+        & randomMove
+  let candidateThree =
+        treeChildren tree
+        & map (\child -> (treeValue child).board_)
+        & randomMove
+
+  nextMove' <-
+        candidateOne
+        & orElseWithIO candidateTwo
+        & orElseWithIO candidateThree
+        & liftIO
   return nextMove'
 
   where
-    -- todo choose random move
-    randomMove :: [Board] -> Maybe AIMove
-    randomMove []      = Nothing
-    randomMove (m : _) = Just $ RandomGuess $ m
+    randomMove :: [Board] -> IO (Maybe AIMove)
+    randomMove []      = return Nothing
+    randomMove moves = do
+      index <- uniformRM (0, length moves) globalStdGen
+      return $ Just $ RandomGuess $ moves !! index
 
 -----------------------------------------------------------
 

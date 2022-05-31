@@ -70,7 +70,7 @@ loopWithDiff player prevBoard board = do
     InProgress -> do
       case playerKind player of
         AI -> do
-          board' <- liftReader $ nextMove player board
+          board' <- nextMove player board
           case board' of
             Just (Definite board'') -> do
               liftIO $ putStrLn "I'll win!"

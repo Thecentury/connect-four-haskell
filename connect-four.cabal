@@ -43,7 +43,8 @@ library
   import:              common-options
   hs-source-dirs:      src
   build-depends:       mtl,
-                       ansi-terminal
+                       ansi-terminal,
+                       random
   exposed-modules:     ConnectFour,
                        OwnPrelude,
                        GameLoop,
@@ -55,7 +56,7 @@ executable connect-four
   main-is:             Main.hs
   build-depends:       connect-four,
                        mtl,
-                       ansi-terminal
+                       ansi-terminal,
   ghc-options:         -threaded
                        -rtsopts
                        -with-rtsopts=-N
